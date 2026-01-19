@@ -33,26 +33,21 @@ use MediaWiki\Title\Title;
  * @package MediaWiki\Skins\Vector\FeatureManagement\Requirements
  */
 final class LimitedWidthContentRequirement implements Requirement {
-	private Config $config;
-	private WebRequest $request;
-	private ?Title $title;
-
 	/**
 	 * This constructor accepts all dependencies needed to determine whether
 	 * the overridable config is enabled for the current user and request.
 	 *
 	 * @param Config $config
+	 * @param ConfigHelper $configHelper
 	 * @param WebRequest $request
 	 * @param Title|null $title can be null in testing environment
 	 */
 	public function __construct(
-		Config $config,
-		WebRequest $request,
-		?Title $title = null
+		private readonly Config $config,
+		private readonly ConfigHelper $configHelper,
+		private readonly WebRequest $request,
+		private readonly ?Title $title = null,
 	) {
-		$this->config = $config;
-		$this->title = $title;
-		$this->request = $request;
 	}
 
 	/**
@@ -81,8 +76,8 @@ final class LimitedWidthContentRequirement implements Requirement {
 	 * @param WebRequest $request
 	 * @return bool
 	 */
-	private static function shouldDisableMaxWidth( array $options, Title $title, WebRequest $request ): bool {
-		return ConfigHelper::shouldDisable( $options, $request, $title );
+	private function shouldDisableMaxWidth( array $options, Title $title, WebRequest $request ): bool {
+		return $this->configHelper->shouldDisable( $options, $request, $title );
 	}
 
 	/**
@@ -93,7 +88,7 @@ final class LimitedWidthContentRequirement implements Requirement {
 	 * @inheritDoc
 	 */
 	public function isMet(): bool {
-		return $this->title && !self::shouldDisableMaxWidth(
+		return $this->title && !$this->shouldDisableMaxWidth(
 			$this->config->get( 'VectorMaxWidthOptions' ),
 			$this->title,
 			$this->request

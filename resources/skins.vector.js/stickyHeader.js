@@ -19,8 +19,8 @@ const
 /**
  * Copies attribute from an element to another.
  *
- * @param {Element} from
- * @param {Element} to
+ * @param {HTMLElement} from
+ * @param {HTMLElement} to
  * @param {string} attribute
  */
 function copyAttribute( from, to, attribute ) {
@@ -55,23 +55,36 @@ function hide() {
 /**
  * Copies attribute from an element to another.
  *
- * @param {Element} from
- * @param {Element} to
+ * @param {HTMLElement} from
+ * @param {HTMLElement} to
  */
 function copyButtonAttributes( from, to ) {
 	copyAttribute( from, to, 'href' );
 	copyAttribute( from, to, 'title' );
 	// Copy button labels
 	if ( to.lastElementChild && from.lastElementChild ) {
-		to.lastElementChild.innerHTML = from.lastElementChild.textContent || '';
+		to.lastElementChild.textContent = from.lastElementChild.textContent || '';
 	}
+}
+
+/**
+ * Gets an anchor element from a parent element by selector.
+ *
+ * Helper function to avoid repeating type assertions.
+ *
+ * @param {HTMLDocument|HTMLElement} parent
+ * @param {string} selector
+ * @return {HTMLAnchorElement|null}
+ */
+function getAnchorElement( parent, selector ) {
+	return parent.querySelector( selector );
 }
 
 /**
  * Suffixes an attribute with a value that indicates it
  * relates to the sticky header to support click tracking instrumentation.
  *
- * @param {Element} node
+ * @param {HTMLElement} node
  * @param {string} attribute
  */
 function suffixStickyAttribute( node, attribute ) {
@@ -114,7 +127,7 @@ function unsuffixStickyHref( node ) {
 /**
  * Makes a node trackable by our click tracking instrumentation.
  *
- * @param {Element} node
+ * @param {HTMLElement} node
  */
 function makeNodeTrackable( node ) {
 	suffixStickyAttribute( node, 'id' );
@@ -122,7 +135,7 @@ function makeNodeTrackable( node ) {
 }
 
 /**
- * @param {Element} node
+ * @param {HTMLElement} node
  */
 function removeNode( node ) {
 	if ( node.parentNode ) {
@@ -133,7 +146,7 @@ function removeNode( node ) {
 /**
  * Ensures a sticky header button has the correct attributes
  *
- * @param {Element} watchLink
+ * @param {HTMLElement} watchLink
  * @param {boolean} isWatched The page is watched
  */
 function updateStickyWatchlink( watchLink, isWatched ) {
@@ -141,7 +154,7 @@ function updateStickyWatchlink( watchLink, isWatched ) {
 }
 
 /**
- * @param {NodeList} nodes
+ * @param {NodeListOf<HTMLElement>} nodes
  * @param {string} className
  */
 function removeClassFromNodes( nodes, className ) {
@@ -151,7 +164,7 @@ function removeClassFromNodes( nodes, className ) {
 }
 
 /**
- * @param {NodeList} nodes
+ * @param {NodeListOf<HTMLElement>} nodes
  */
 function removeNodes( nodes ) {
 	Array.prototype.forEach.call( nodes, ( node ) => {
@@ -172,41 +185,39 @@ function watchstarCallback( $link, isWatched ) {
 /**
  * Makes sticky header icons functional for modern Vector.
  *
- * @param {Element} header
- * @param {Element|null} history
- * @param {Element|null} talk
- * @param {Element|null} subject
- * @param {Element|null} watch
+ * @param {HTMLElement} header
+ * @param {HTMLAnchorElement|null} history
+ * @param {HTMLAnchorElement|null} talk
+ * @param {HTMLAnchorElement|null} subject
+ * @param {HTMLAnchorElement|null} watch
+ * @param {HTMLAnchorElement|null} bookmark
  */
-function prepareIcons( header, history, talk, subject, watch ) {
-	const historySticky = header.querySelector( '#ca-history-sticky-header' ),
-		talkSticky = header.querySelector( '#ca-talk-sticky-header' ),
-		subjectSticky = header.querySelector( '#ca-subject-sticky-header' ),
-		watchSticky = header.querySelector( '#ca-watchstar-sticky-header' );
+function prepareIcons( header, history, talk, subject, watch, bookmark ) {
+	const historySticky = getAnchorElement( header, '#ca-history-sticky-header' ),
+		talkSticky = getAnchorElement( header, '#ca-talk-sticky-header' ),
+		subjectSticky = getAnchorElement( header, '#ca-subject-sticky-header' ),
+		watchSticky = getAnchorElement( header, '#ca-watchstar-sticky-header' ),
+		bookmarkSticky = getAnchorElement( header, '#ca-bookmark-sticky-header' );
 
-	if ( !historySticky || !talkSticky || !subjectSticky || !watchSticky ) {
-		throw new Error( 'Sticky header has unexpected HTML' );
-	}
-
-	if ( history ) {
+	if ( historySticky && history ) {
 		copyButtonAttributes( history, historySticky );
-	} else {
+	} else if ( historySticky ) {
 		removeNode( historySticky );
 	}
 
-	if ( talk ) {
+	if ( talkSticky && talk ) {
 		copyButtonAttributes( talk, talkSticky );
-	} else {
+	} else if ( talkSticky ) {
 		removeNode( talkSticky );
 	}
 
-	if ( subject ) {
+	if ( subjectSticky && subject ) {
 		copyButtonAttributes( subject, subjectSticky );
-	} else {
+	} else if ( subjectSticky ) {
 		removeNode( subjectSticky );
 	}
 
-	if ( watch && watch.parentNode instanceof Element ) {
+	if ( watchSticky && watch && watch.parentNode instanceof HTMLElement ) {
 		const watchContainer = watch.parentNode;
 		const isTemporaryWatch = watchContainer.classList.contains( 'mw-watchlink-temp' );
 		const isWatched = isTemporaryWatch || watchContainer.getAttribute( 'id' ) === 'ca-unwatch';
@@ -221,19 +232,33 @@ function prepareIcons( header, history, talk, subject, watch ) {
 		// jQuery required as parameter for external API:
 		// eslint-disable-next-line no-jquery/no-jquery-constructor
 		watchLib.watchstar( $( watchSticky ), mw.config.get( 'wgRelevantPageName' ), watchstarCallback );
-	} else {
+	} else if ( watchSticky ) {
 		removeNode( watchSticky );
+	}
+
+	if ( bookmarkSticky && bookmark ) {
+		const icon = bookmark.querySelector( '.vector-icon' );
+		if ( icon ) {
+			copyButtonAttributes( bookmark, bookmarkSticky );
+			const bookmarkIcon = /** @type {HTMLElement} */ ( bookmark.querySelector( '.vector-icon' ) );
+			const bookmarkStickyIcon = /** @type {HTMLElement} */ ( bookmarkSticky.querySelector( '.vector-icon' ) );
+			bookmarkStickyIcon.className = bookmarkIcon.className;
+			/** @type {HTMLElement} */( bookmarkSticky ).dataset.mwListId = /** @type {HTMLElement} */( bookmark ).dataset.mwListId || '';
+			/** @type {HTMLElement} */( bookmarkSticky ).dataset.mwEntryId = /** @type {HTMLElement} */( bookmark ).dataset.mwEntryId || '';
+		}
+	} else if ( bookmarkSticky ) {
+		removeNode( bookmarkSticky );
 	}
 }
 
 /**
  * Render sticky header edit or protected page icons for modern Vector.
  *
- * @param {Element} header
- * @param {Element|null} primaryEdit
+ * @param {HTMLElement} header
+ * @param {HTMLElement|null} primaryEdit
  * @param {boolean} isProtected
- * @param {Element|null} secondaryEdit
- * @param {Element|null} addSection
+ * @param {HTMLElement|null} secondaryEdit
+ * @param {HTMLElement|null} addSection
  * @param {Function} disableStickyHeader function to call to disable the sticky
  *  header.
  */
@@ -245,24 +270,10 @@ function prepareEditIcons(
 	addSection,
 	disableStickyHeader
 ) {
-	/**
-	 * @param {string} selector
-	 * @return {HTMLAnchorElement|null}
-	 */
-	const getAnchorElement = ( selector ) => header.querySelector( selector );
-	const
-		primaryEditSticky = getAnchorElement(
-			'#ca-ve-edit-sticky-header'
-		),
-		protectedSticky = getAnchorElement(
-			'#ca-viewsource-sticky-header'
-		),
-		wikitextSticky = getAnchorElement(
-			'#ca-edit-sticky-header'
-		),
-		addSectionSticky = getAnchorElement(
-			'#ca-addsection-sticky-header'
-		);
+	const primaryEditSticky = getAnchorElement( header, '#ca-ve-edit-sticky-header' ),
+		protectedSticky = getAnchorElement( header, '#ca-viewsource-sticky-header' ),
+		wikitextSticky = getAnchorElement( header, '#ca-edit-sticky-header' ),
+		addSectionSticky = getAnchorElement( header, '#ca-addsection-sticky-header' );
 
 	if ( addSectionSticky ) {
 		if ( addSection ) {
@@ -347,7 +358,7 @@ function prepareEditIcons(
 /**
  * Check if element is in viewport.
  *
- * @param {Element} element
+ * @param {HTMLElement} element
  * @return {boolean}
  */
 function isInViewport( element ) {
@@ -363,7 +374,7 @@ function isInViewport( element ) {
 /**
  * Add hooks for sticky header when Visual Editor is used.
  *
- * @param {Element} stickyIntersection intersection element
+ * @param {HTMLElement} stickyIntersection intersection element
  * @param {IntersectionObserver} observer
  */
 function addVisualEditorHooks( stickyIntersection, observer ) {
@@ -398,13 +409,14 @@ function addVisualEditorHooks( stickyIntersection, observer ) {
  * itself collapses at low resolutions) and updates click tracking event names. Also wires up the
  * logout link so it works in a single click.
  *
- * @param {Element} userLinksDropdown
- * @return {Element} cloned userLinksDropdown
+ * @param {HTMLElement} userLinksDropdown
+ * @return {HTMLElement} cloned userLinksDropdown
  */
 function prepareUserLinksDropdown( userLinksDropdown ) {
 	const
 		// Type declaration needed because of https://github.com/Microsoft/TypeScript/issues/3734#issuecomment-118934518
-		userLinksDropdownClone = /** @type {Element} */( userLinksDropdown.cloneNode( true ) ),
+		userLinksDropdownClone = /** @type {HTMLElement} */ ( userLinksDropdown.cloneNode( true ) ),
+		/** @type {NodeListOf<HTMLElement>} */
 		userLinksDropdownStickyElementsWithIds = userLinksDropdownClone.querySelectorAll( '[ id ], [ data-event-name ]' );
 	// Update all ids of the cloned user menu to make them unique.
 	makeNodeTrackable( userLinksDropdownClone );
@@ -435,10 +447,10 @@ function prepareUserLinksDropdown( userLinksDropdown ) {
 /**
  * Makes sticky header functional for modern Vector.
  *
- * @param {Element} header
- * @param {Element} userLinksDropdown
+ * @param {HTMLElement} header
+ * @param {HTMLElement} userLinksDropdown
  * @param {IntersectionObserver} stickyObserver
- * @param {Element} stickyIntersection
+ * @param {HTMLElement} stickyIntersection
  */
 function makeStickyHeaderFunctional(
 	header,
@@ -473,12 +485,13 @@ function makeStickyHeaderFunctional(
 		document.querySelector( '#ca-history a' ),
 		document.querySelector( '#ca-talk:not( .selected ) a' ),
 		document.querySelector( '#' + namespaceTabId + ':not( .selected ) a' ),
-		document.querySelector( '#ca-watch a, #ca-unwatch a' )
+		document.querySelector( '#ca-watch a, #ca-unwatch a' ),
+		document.querySelector( '#ca-bookmark a' )
 	);
 
-	const veEdit = document.querySelector( '#ca-ve-edit a' );
-	const ceEdit = document.querySelector( '#ca-edit a' );
-	const protectedEdit = document.querySelector( '#ca-viewsource a' );
+	const veEdit = getAnchorElement( document, '#ca-ve-edit a' );
+	const ceEdit = getAnchorElement( document, '#ca-edit a' );
+	const protectedEdit = getAnchorElement( document, '#ca-viewsource a' );
 	const isProtected = !!protectedEdit;
 	// For sticky header edit A/B test, conditionally remove the edit icon by setting null.
 	// Otherwise, use either protected, ve, or source edit (in that order).
@@ -489,6 +502,7 @@ function makeStickyHeaderFunctional(
 		stickyObserver.unobserve( stickyIntersection );
 	};
 	// When VectorPromoteAddTopic is set, #ca-addsection is the link itself
+	/** @type {HTMLElement|null} */
 	const addSection = document.querySelector( '#ca-addsection a' ) || document.querySelector( 'a#ca-addsection' );
 
 	prepareEditIcons(
@@ -504,15 +518,15 @@ function makeStickyHeaderFunctional(
 }
 
 /**
- * @param {Element} header
+ * @param {HTMLElement} header
  */
 function setupSearchIfNeeded( header ) {
-	const
-		searchToggle = header.querySelector( SEARCH_TOGGLE_SELECTOR );
-
 	if ( !document.body.classList.contains( 'skin-vector-search-vue' ) ) {
 		return;
 	}
+
+	/** @type {HTMLElement|null} */
+	const searchToggle = header.querySelector( SEARCH_TOGGLE_SELECTOR );
 
 	if ( searchToggle ) {
 		initSearchToggle( searchToggle );
@@ -547,10 +561,10 @@ function isAllowedAction( action ) {
 
 /**
  * @typedef {Object} StickyHeaderProps
- * @property {Element} header
- * @property {Element} userLinksDropdown
+ * @property {HTMLElement} header
+ * @property {HTMLElement} userLinksDropdown
  * @property {IntersectionObserver} observer
- * @property {Element} stickyIntersection
+ * @property {HTMLElement} stickyIntersection
  */
 
 /**

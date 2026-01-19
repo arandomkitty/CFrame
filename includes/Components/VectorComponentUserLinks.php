@@ -19,17 +19,6 @@ class VectorComponentUserLinks implements VectorComponent {
 		. 'cdx-button--fake-button--enabled cdx-button--weight-quiet';
 	private const ICON_ONLY_BUTTON_CLASS = 'cdx-button--icon-only';
 
-	/** @var MessageLocalizer */
-	private $localizer;
-	/** @var UserIdentity */
-	private $user;
-	/** @var array */
-	private $portletData;
-	/** @var array */
-	private $linkOptions;
-	/** @var string */
-	private $userIcon;
-
 	/**
 	 * @param MessageLocalizer $localizer
 	 * @param UserIdentity $user
@@ -38,17 +27,12 @@ class VectorComponentUserLinks implements VectorComponent {
 	 * @param string $userIcon that represents the current type of user
 	 */
 	public function __construct(
-		MessageLocalizer $localizer,
-		UserIdentity $user,
-		array $portletData,
-		array $linkOptions,
-		string $userIcon = 'userAvatar'
+		private readonly MessageLocalizer $localizer,
+		private readonly UserIdentity $user,
+		private readonly array $portletData,
+		private readonly array $linkOptions,
+		private readonly string $userIcon = 'userAvatar',
 	) {
-		$this->localizer = $localizer;
-		$this->user = $user;
-		$this->portletData = $portletData;
-		$this->linkOptions = $linkOptions;
-		$this->userIcon = $userIcon;
 	}
 
 	/**
@@ -91,7 +75,7 @@ class VectorComponentUserLinks implements VectorComponent {
 		}
 
 		$tooltip = Html::expandAttributes( [
-			'title' => $this->msg( 'vector-personal-tools-tooltip' ),
+			'title' => $this->msg( 'vector-personal-tools-tooltip' )->text(),
 		] );
 		$icon = $this->userIcon;
 		if ( $icon === '' && $userLinksCount ) {
@@ -152,7 +136,7 @@ class VectorComponentUserLinks implements VectorComponent {
 					$anonUserMenuData['html-label'] = $this->msg( 'vector-anon-user-menu-pages' )->escaped() .
 						" " . $anonEditorLabelLinkHtml;
 					$anonUserMenuData['label'] = null;
-				} catch ( MalformedTitleException $e ) {
+				} catch ( MalformedTitleException ) {
 					// ignore (T340220)
 				}
 				$dropdownMenus[] = new VectorComponentMenu( $anonUserMenuData );
@@ -275,10 +259,6 @@ class VectorComponentUserLinks implements VectorComponent {
 				static function ( $item ) {
 					// Since we're creating duplicate icons
 					$item['id'] .= '-2';
-					// Restore icon removed in hooks.
-					if ( $item['name'] === 'watchlist' ) {
-						$item['icon'] = 'watchlist';
-					}
 					return $item;
 				},
 				// array_filter preserves keys so use array_values to restore array.
@@ -287,11 +267,14 @@ class VectorComponentUserLinks implements VectorComponent {
 						$portletData['data-user-menu']['array-items'] ?? [],
 						static function ( $item ) {
 							// Only certain items get promoted to the overflow menu:
+							// * readinglist
 							// * watchlist
 							// * login
 							// * create account
+							// * donate
 							$name = $item['name'];
 							return in_array( $name, [
+								'readinglists',
 								'watchlist',
 								'createaccount',
 								'login',
