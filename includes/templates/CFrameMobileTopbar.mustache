@@ -1,0 +1,11 @@
+<div class="mobileTopbar">
+    <div class="mobileTopbar-Buttons">
+	{{#data-portlets}}{{#data-notifications}}{{!
+	}}{{#array-list-items}}{{>MenuListItem}}{{/array-list-items}}{{#html-items}}{{{.}}}{{/html-items}}
+	{{!
+	}}{{/data-notifications}}{{/data-portlets}}
+	{{>CFrameLogout}}
+    </div>
+    {{#data-search-box}}{{>CFrameSearchBox}}{{/data-search-box}}
+</div>
+

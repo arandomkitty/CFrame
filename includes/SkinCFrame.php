@@ -205,28 +205,36 @@ class SkinCFrame extends SkinMustache {
 		$parentData['data-portlets']['data-mobile-personal'] = $parentData['data-portlets']['data-personal'];
 		$parentData['data-portlets']['data-mobile-personal'] = preg_replace('/<li id="pt-logout".*?<\/li>/', '', $parentData['data-portlets']['data-mobile-personal']);
 
-		/*Create MobileNavActions*/
-		$parentData['data-portlets']['data-mobile-actions'] = $parentData['data-portlets']['data-actions'];
-		$parentData['data-portlets']['data-mobile-actions']['html-items'] = preg_replace('/((?<=<)div(?= id))|((?<=<\/)div(?=>))/', 'li', $parentData['data-portlets']['data-mobile-actions']['html-items']);
-		$parentData['data-portlets']['data-mobile-actions']['html-items'] = preg_replace('/Log out/', 'Logout', $parentData['data-portlets']['data-mobile-actions']['html-items']);
-		$parentData['data-portlets']['data-mobile-actions']['html-items'] = preg_replace('/Log in/', 'Login', $parentData['data-portlets']['data-mobile-actions']['html-items']);
-
-		/*Create MobileNavCreate*/
-
-		$parentData['data-portlets']['data-mobile-create']['html-item'] = preg_replace('/<span id="pt-create/', '<li id="pt-create', $parentData['data-portlets']['data-create']['html-item']);
-		$parentData['data-portlets']['data-mobile-create']['html-item'] = preg_replace('/<\/span>$/', '</li>', $parentData['data-portlets']['data-mobile-create']['html-item']);
-
-		$parentData['data-portlets']['data-mobile-tb'] = $parentData['data-portlets-sidebar']['array-portlets-rest'][array_search('p-tb', array_column($parentData['data-portlets-sidebar']['array-portlets-rest'], 'id'))];
-
 		$parentData['data-toplinks'] = [];
 
 		$this->addToSidebar($parentData['data-toplinks'], 'toplinks');
 		foreach ($parentData['data-toplinks']['topnav'] as $x => $y) {
 			$parentData['data-toplinks']['topnav'][$x]['id'] = preg_replace('/^n-/', 'topnav-', $y['id']);
 		}
+		foreach ($parentData['data-toplinks']['mobilenav'] as $x => $y) {
+			$parentData['data-toplinks']['mobilenav'][$x]['image'] = preg_replace('/.*?\|/', '', $y['text']);
+			$parentData['data-toplinks']['mobilenav'][$x]['text'] = preg_replace('/\|.*/', '', $y['text']);
+		}
+
 		$parentData['data-toplinks']['id'] = 'p-toplinks';
 		$parentData['data-toplinks']['class'] = "mw-portlet mw-portlet-personal cframe-user-menu";
+		
+		$parentData['data-mobileRest'] = [];
+		
+		$parentData['data-mobileRest']['Navigation'] = $parentData['data-portlets-sidebar']['array-portlets-rest'][0];
+		$parentData['data-mobileRest']['Navigation']['title'] = 'Navigation';
 
+		$parentData['data-mobileRest']["Personal"] = $parentData['data-portlets']['data-user-menu'];
+		$parentData['data-mobileRest']['Personal']['html-items'] = preg_replace('/(user page.*?<span>).*?(<\/span>)/', '$1User Page$2', $parentData['data-mobileRest']['Personal']['html-items']);
+		$parentData['data-mobileRest']['Personal']['html-items'] = preg_replace('/<li id="pt-logout.*/', '', $parentData['data-mobileRest']['Personal']['html-items']);
+		$parentData['data-mobileRest']['Personal']['title'] = 'Personal';
+
+		$parentData['data-mobileRest']["Tools"] = $parentData['data-portlets-sidebar']['array-portlets-rest'][3];
+		$parentData['data-mobileRest']["Tools"]['title'] = 'Tools';
+
+		$parentData['data-mobileRest']["Extra"][] = $parentData['data-portlets-sidebar']['data-portlets-first'];
+		$parentData['data-mobileRest']['Extra'][] = $parentData['data-portlets-sidebar']['array-portlets-rest'][2];
+		$parentData['data-mobileRest']["Extra"]['title'] = 'Extra';
 		$components = [
 			'data-search-box' => new CFrameComponentSearchBox(
 				$parentData['data-search-box'],
@@ -235,7 +243,7 @@ class SkinCFrame extends SkinMustache {
 				true,
 				'searchform',
 				//json_encode(Constants::CONFIG_KEY_NIGHT_MODE),
-				//json_encode($parentData),
+				//json_encode($parentData['data-portlets']),
 				true,
 				$this->getConfig(),
 				Constants::SEARCH_BOX_INPUT_LOCATION_DEFAULT,

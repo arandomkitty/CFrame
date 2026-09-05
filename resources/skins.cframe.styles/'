@@ -589,7 +589,7 @@ pre {
 }
 
 #p-search #simpleSearch {
-	width: calc(100vw - 20vw - 440px - 70px - 10px);
+	width: calc(100vw - 20vw - 370px - 70px - 10px);
 	height: 100%;
 	margin-left: 0;
 	max-width: unset;
@@ -600,37 +600,23 @@ pre {
 	border: 1px solid var(--cframe-outer-border-color);
 }
 
-#ca-view {
-	display: none;
-}
-
 :not(#mobilePageLinks) > .cframe-menu-tabs a {
 	border-top-color: transparent !important;
 }
 
-:not(#mobilePageLinks) #ca-ve-edit {
-	border-right: 0;
-}
-
-:not(#mobilePageLinks) > .cframe-menu-tabs #ca-edit > a, :not(#mobilePageLinks) > .cframe-menu-tabs #ca-ve-edit > a {
+:not(#mobilePageLinks) > .cframe-menu-tabs #ca-edit > a {
 	background: var(--cframe-link-color);
 	color: #fff !important;
 }
 
-:not(#mobilePageLinks) #p-views li:nth-child(2), :not(#mobilePageLinks) > #p-namespaces li:first-of-type {
-	border-bottom-left-radius: 6px;
+:not(#mobilePageLinks) > .cframe-menu-tabs #ca-view,
+:not(#mobilePageLinks) > .cframe-menu-tabs li[id^="ca-nstab"] {
+	margin-left: 5px;
 }
 
-:not(#mobilePageLinks) #p-views li:last-of-type {
-	border-bottom-right-radius: 6px;
-}
-
-:not(#mobilePageLinks) #p-views .cframe-menu-content-list {
-	margin: 0 5px;
-}
-
-:not(#mobilePageLinks) #p-namespaces .cframe-menu-content-list {
-	margin: 0 0 0 5px
+:not(#mobilePageLinks) > .cframe-menu-tabs #ca-watch,
+:not(#mobilePageLinks) > .cframe-menu-tabs #ca-unwatch {
+	margin-right: 5px;
 }
 
 .cframe-menu-tabs li a {
@@ -1395,7 +1381,7 @@ html.defaultCollapsed #bodyContent {
 	margin-left: 0px;
 }
 
-#content:has(> #mw-panel.expanded) #firstHeading, .ve-activated #firstHeading {
+#content:has(> #mw-panel.expanded) #firstHeading {
 	margin-left: 160px;
 }
 
@@ -2222,55 +2208,13 @@ div.tabber table {
 }
 
 /* Ensures that corners are properly applied to the top bar icons. */
-:not(#mobilePageLinks) #p-views .cframe-menu-content-list li:nth-child(2) a {
+#p-views:not(#mobilePageLinks) .cframe-menu-content-list .mw-list-item:first-of-type a {
 	border-bottom-left-radius:6px;
 }
-:not(#mobilePageLinks) #p-views .cframe-menu-content-list .mw-list-item:last-of-type a {
+#p-views:not(#mobilePageLinks) .cframe-menu-content-list .mw-list-item:last-of-type a {
 	border-bottom-right-radius:6px;
 }
-:not(#mobilePageLinks) #p-namespaces .cframe-menu-content-list .mw-list-item:first-of-type a {
+#p-namespaces:not(#mobilePageLinks) .cframe-menu-content-list .mw-list-item:first-of-type a {
 	border-bottom-left-radius:6px;
 }
 
-/* Visual Editor */
-.ve-ui-toolbar > .oo-ui-toolbar-bar {
-	margin: 40px 35px;
-	margin-left: 190px;
-	background: black;
-	border-image: url("./Others/NewSideDescriptionUI_Hollow.png") round;
-	border-image-slice: 5%;
-	border-image-width: 30px;
-	border-image-outset: 10px 15px;
-	border-image-repeat: repeat;
-	color: white;
-	padding: 5px;
-	box-sizing: border-box;
-	height: 50px;
-	font-family: 'Accanthis ADF Std';
-	font-weight: bold;
-	--cframe-other-color-1: black;
-	--cframe-link-color: white;
-	--cframe-link-color-hover: white;
-	--color-progressive: white;
-}
-
-.ve-ui-targetWidget .ve-ui-toolbar > .oo-ui-toolbar-bar {
-	margin: 0 !important;
-	padding: 5px !important;
-}
-
-.oo-ui-barToolGroup-tools.oo-ui-toolGroup-disabled-tools .oo-ui-tool.oo-ui-flaggedElement-primary > .oo-ui-tool-link {
-	filter: brightness(0.5);
-}
-
-.ve-ui-toolbar .oo-ui-tool-name-heading1 {
-	display: none !important;
-}
-
-.ve-ui-toolbar .ve-ui-toolbar-saveButton {
-	background: linear-gradient(black, #1c1c1c);
-	border-image: url('./Others/NewSideDescriptionUI_Hollow') round;
-	border-image-width: 30px;
-	border-image-slice: 6%;
-	border-image-outset: 5px;
-}
